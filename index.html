@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAFA ANONIM - PREMIUM FEEDBACK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap');
+        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
+        .ngl-gradient { background: linear-gradient(45deg, #FF0055, #FF5500, #FFCC00); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 35px; }
+        .inbox-card { background: #111; border: 1px solid #222; border-radius: 25px; transition: transform 0.2s; }
+        .inbox-card:active { transform: scale(0.97); }
+        .hidden { display: none; }
+        .vip-blur { filter: blur(6px); opacity: 0.5; user-select: none; }
+        .gold-glow { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); border: 1px solid #ffd700 !class; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <div id="app-container" class="w-full max-w-sm space-y-10 mt-12 animate-fade-in">
+        </div>
+
+    <div id="vip-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50 backdrop-blur-sm">
+        <div class="glass p-8 w-full max-w-xs text-center space-y-5 gold-glow relative">
+            <button onclick="closeVIP()" class="absolute top-4 right-4 text-gray-600">✕</button>
+            <h3 class="text-3xl font-black text-yellow-500 italic tracking-tighter">💎 VIP ACCESS</h3>
+            <p class="text-zinc-400 text-sm">Buka data identitas pengirim (Nomor HP/Email) selamanya.</p>
+            <div class="bg-zinc-900 p-4 rounded-2xl font-black text-xl text-white">Rp 10.000</div>
+            <button id="wa-pay-btn" class="w-full bg-green-600 text-white p-4 rounded-full font-black text-sm flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-lg"></i> HUBUNGI WA RAFA
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- !!! KONFIGURASI BOSS RAFA !!! ---
+        const BOSS_PASSWORD = "rapx"; // Ganti ini buat password Admin Panel
+        const MY_PHONE = "6285779155783"; // Nomor WA lu (tanpa '+')
+
+        const firebaseConfig = {
+            // ISI URL DATABASE FIREBASE LU DI SINI BOSS!
+            databaseURL: "https://rapx-ngl-default-rtdb.firebaseio.com"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- CORE STATE ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUser = urlParams.get('u');
+        const isAdminMode = urlParams.get('boss') === 'true'; // Link: ?boss=true
+        const mySavedUser = localStorage.getItem('rafa_user');
+
+        // --- ROUTING LOGIC ---
+        if (isAdminMode) {
+            checkAdminAuth();
+        } else if (targetUser) {
+            renderSender(targetUser);
+        } else if (mySavedUser) {
+            renderDashboard(mySavedUser);
+        } else {
+            renderLogin();
+        }
+
+        // --- AUTH: CEK PASSWORD ADMIN ---
+        function checkAdminAuth() {
+            const pass = prompt("MASUKKAN PASSWORD BOSS:");
+            if (pass === BOSS_PASSWORD) {
+                renderAdmin();
+            } else {
+                alert("PASSWORD SALAH! AKSES DITOLAK.");
+                window.location.href = window.location.href.split('?')[0];
+            }
+        }
+
+        // 1. TAMPILAN LOGIN (PENDAFTARAN)
+        function renderLogin() {
+            document.getElementById('app-container').innerHTML = `
+                <div class="text-center space-y-4">
+                    <h1 class="text-7xl font-black italic tracking-tighter ngl-gradient bg-clip-text text-transparent">RAFA<span class="text-white">.</span></h1>
+                    <p class="text-zinc-500 text-xs uppercase tracking-[0.4em]">Advanced Anonym System</p>
+                </div>
+                <div class="space-y-4 pt-16">
+                    <input type="text" id="reg-id" placeholder="Username Instagram Lu" class="w-full p-6 rounded-3xl bg-zinc-900 border border-zinc-800 text-center font-bold text-2xl outline-none focus:border-pink-500 transition shadow-inner">
+                    <button onclick="saveUser()" class="w-full ngl-gradient p-6 rounded-full font-black text-xl shadow-2xl hover:scale-105 transition-transform">
+                        GET MY LINK!
+                    </button>
+                    <p class="text-[10px] text-zinc-700 text-center mt-6">Dev: Rafa Fauzan Kamil (13 YO)</p>
+                </div>
+            `;
+        }
+
+        function saveUser() {
+            const id = document.getElementById('reg-id').value.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if(!id || id.length < 3) return alert("ID kekecilan atau kosong, Boss!");
+            localStorage.setItem('rafa_user', id);
+            location.reload();
+        }
+
+        // 2. TAMPILAN DASHBOARD (USER UTAMA)
+        function renderDashboard(user) {
+            const shareLink = window.location.href.split('?')[0] + "?u=" + user;
+            
+            document.getElementById('app-container').innerHTML = `
+                <div class="glass p-8 text-center space-y-5 relative gold-glow">
+                    <div class="w-20 h-20 rounded-full border-4 border-pink-500 p-1 mx-auto shadow-2xl">
+                        <img src="https://i.ibb.co/CsqWq7L/Snapchat-1920777707.jpg" class="w-full h-full rounded-full object-cover">
+                    </div>
+                    <h2 class="font-black text-3xl italic tracking-tighter text-pink-500">@${user}</h2>
+                    <div class="p-3 bg-black/50 rounded-full text-zinc-500 text-[10px] font-mono break-all border border-zinc-800">${shareLink}</div>
+                    <button onclick="navigator.clipboard.writeText('${shareLink}'); alert('Link copied, Boss!')" class="w-full bg-white text-black py-4 rounded-full font-black uppercase text-xs tracking-wider shadow-lg">SALIN LINK STORY</button>
+                </div>
+
+                <div id="vip-status-bar" class="hidden text-center text-xs font-bold text-yellow-500 p-2 bg-yellow-950/30 rounded-full border border-yellow-800">💎 STATUS: VIP AKTIF (FULL ACCESS)</div>
+
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center px-2">
+                        <h3 class="font-bold text-lg tracking-tight">MESSAGES INBOX</h3>
+                        <span id="msg-count" class="text-sm font-bold bg-zinc-800 px-3 py-1 rounded-full text-zinc-400">0</span>
+                    </div>
+                    <div id="msg-container" class="space-y-4">Memuat pesan...</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-10">
+                    <button onclick="openVIP('${user}')" id="buy-vip-btn" class="p-6 bg-zinc-950 rounded-3xl border-2 border-yellow-500/50 flex flex-col items-center gold-glow">
+                        <span class="text-3xl mb-2">💎</span>
+                        <span class="font-bold text-[10px] text-yellow-500 uppercase">GET VIP ACCESS</span>
+                    </button>
+                    <button onclick="localStorage.removeItem('rafa_user'); location.reload();" class="p-6 bg-zinc-950 rounded-3xl border border-zinc-800 flex flex-col items-center">
+                        <span class="text-3xl mb-2">🔄</span>
+                        <span class="font-bold text-[10px] text-zinc-600 uppercase">GANTI ID</span>
+                    </button>
+                </div>
+            `;
+
+            // REALTIME DATABASE SYNC
+            let firstLoad = true;
+            db.ref('users/' + user).on('value', uSnap => {
+                const userData = uSnap.val();
+                const isVIP = userData && userData.isVIP;
+                
+                // Update UI based on VIP status
+                if(isVIP) {
+                    document.getElementById('vip-status-bar').classList.remove('hidden');
+                    document.getElementById('buy-vip-btn').classList.add('opacity-30', 'pointer-events-none');
+                }
+
+                db.ref('messages/' + user).on('value', mSnap => {
+                    const list = document.getElementById('msg-container');
+                    const countSpan = document.getElementById('msg-count');
+                    list.innerHTML = "";
+                    const data = mSnap.val();
+                    
+                    if(!data) {
+                        countSpan.innerText = "0";
+                        return list.innerHTML = "<p class='text-center text-zinc-700 py-10 text-sm'>Belum ada pesan masuk, sebar linknya!</p>";
+                    }
+                    
+                    const msgArray = Object.values(data);
+                    countSpan.innerText = msgArray.length;
+
+                    msgArray.reverse().forEach(m => {
+                        list.innerHTML += `
+                            <div class="inbox-card p-6 shadow-2xl relative overflow-hidden">
+                                <p class="text-[10px] text-zinc-600 font-bold uppercase tracking-wider mb-2">${m.time}</p>
+                                <p class="text-xl font-bold italic text-white leading-tight">"${m.text}"</p>
+                                <div class="mt-5 pt-4 border-t border-zinc-900 flex justify-between items-center gap-2">
+                                    <span class="text-[9px] font-black text-pink-500 uppercase tracking-widest flex-shrink-0">PENGIRIM:</span>
+                                    <span class="text-[10px] font-bold ${isVIP ? 'text-blue-500 bg-blue-950/30 px-3 py-1 rounded-full' : 'vip-blur text-zinc-700'} break-all text-right">${m.phone}</span>
+                                </div>
+                                ${!isVIP ? `<div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black to-transparent"></div>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    if(!firstLoad) {
+                        // Play sound or vibrate (not fully supported by web, but we can try)
+                        if (window.navigator.vibrate) window.navigator.vibrate(200);
+                    }
+                    firstLoad = false;
+                });
+            });
+        }
+
+        // 3. TAMPILAN PENGIRIM (BUAT ORANG LAIN)
+        function renderSender(user) {
+            document.getElementById('app-container').innerHTML = `
+                <div class="text-center space-y-6">
+                    <div class="w-24 h-24 rounded-full border-4 border-pink-500 p-1 mx-auto shadow-xl">
+                        <img src="https://i.ibb.co/CsqWq7L/Snapchat-1920777707.jpg" class="w-full h-full rounded-full object-cover">
+                    </div>
+                    <h1 class="text-2xl font-black italic tracking-tight text-white">Kirim pesan anonim ke <span class="text-pink-500">@${user}</span></h1>
+                    <div class="glass p-6">
+                        <textarea id="msg-input" placeholder="Tulis rahasia di sini, jangan malu-malu..." class="w-full h-44 bg-transparent border-none outline-none text-xl font-medium text-white placeholder-zinc-700 resize-none"></textarea>
+                    </div>
+                    <button onclick="sendMsg('${user}')" class="w-full ngl-gradient p-5 rounded-full font-black text-lg shadow-xl hover:brightness-110 active:scale-95 transition">KIRIM ANONIM</button>
+                    <p class="text-[10px] text-zinc-700 mt-10 uppercase tracking-wider">Powered by RAFA (Anonim)</p>
+                </div>
+            `;
+        }
+
+        function sendMsg(u) {
+            const text = document.getElementById('msg-input').value;
+            if(!text || text.length < 2) return alert("Pesan terlalu pendek, Boss!");
+            
+            db.ref('messages/' + u).push({
+                text: text,
+                // Simulasi Data agar user beli VIP
+                phone: "08" + Math.floor(100000000 + Math.random() * 900000000),
+                time: new Date().toLocaleTimeString('id-ID')
+            });
+            
+            alert("Terkirim! Link lu aman & anonim.");
+            document.getElementById('msg-input').value = "";
+        }
+
+        // 4. ADMIN PANEL (KHUSUS BOSS RAFA - TERPROTEKSI)
+        function renderAdmin() {
+            document.getElementById('app-container').innerHTML = `
+                <div class="text-center space-y-6">
+                    <h1 class="text-4xl font-black text-yellow-500 italic tracking-tighter">BOSS PANEL</h1>
+                    <p class="text-zinc-500 text-xs">PENGAKTIFAN VIP USER MANUAL</p>
+                    <div class="glass p-8 space-y-4 gold-glow">
+                        <input type="text" id="target-id" placeholder="Username User (Contoh: anton123)" class="w-full p-5 bg-zinc-950 rounded-3xl border border-yellow-500/30 text-center font-bold text-lg text-white outline-none">
+                        <button onclick="activateVIP()" class="w-full bg-yellow-500 text-black p-5 rounded-full font-black text-lg">AKTIFKAN VIP SEKARANG</button>
+                    </div>
+                    <button onclick="window.location.href = window.location.href.split('?')[0];" class="text-xs text-zinc-700 mt-10">Logout Admin</button>
+                </div>
+            `;
+        }
+
+        function activateVIP() {
+            const id = document.getElementById('target-id').value.toLowerCase().trim();
+            if(!id) return;
+            // UPDATE FIREBASE
+            db.ref('users/' + id).update({ 
+                isVIP: true,
+                activatedAt: new Date().toISOString()
+            });
+            alert("ID: " + id + " Berhasil Aktif VIP! Cek DANA lu.");
+            document.getElementById('target-id').value = "";
+        }
+
+        // --- UTILITIES (MODAL VIP) ---
+        function openVIP(user) {
+            document.getElementById('vip-modal').classList.remove('hidden');
+            document.getElementById('wa-pay-btn').onclick = () => {
+                window.location.href = `https://wa.me/${MY_PHONE}?text=Bang%20mau%20beli%20VIP%20Anonim%20untuk%20ID%3A%20${user}`;
+            };
+        }
+        function closeVIP() {
+            document.getElementById('vip-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
