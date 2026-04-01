@@ -3,30 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAPX NGL - FINAL BYPASS</title>
+    <title>RAPX ANONIM - V7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; }
+        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
         .ngl-gradient { background: linear-gradient(45deg, #FF0055, #FFCC00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 35px; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; }
+        .btn-logout { border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-6">
 
     <div id="app-container" class="w-full max-w-sm space-y-8 mt-10">
-        <div class="text-center space-y-8 py-10">
-            <h1 class="text-7xl font-black italic ngl-gradient tracking-tighter">RAPX.</h1>
-            <p class="text-zinc-500 animate-pulse text-[10px] tracking-widest uppercase font-bold">Menghubungkan Server...</p>
+        <div class="text-center py-20">
+            <h1 class="text-6xl font-black italic ngl-gradient tracking-tighter animate-pulse">RAPX.</h1>
         </div>
     </div>
 
     <script>
-        // --- DATA FIREBASE BOSS RAFA ---
         const firebaseConfig = {
             apiKey: "AIzaSyCrV-VoZ00xAAlNkEyfz3fB3O323jJuSXE",
             authDomain: "rapx-ngl.firebaseapp.com",
@@ -37,48 +35,71 @@
             appId: "1:689640403951:web:ecb7bb44bed45d437b7c1a"
         };
 
-        // Inisialisasi
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
+        // Routing Logic
         const urlParams = new URLSearchParams(window.location.search);
         const target = urlParams.get('u');
 
-        // Logic Bypass Tampilan
         if (target) {
             renderSender(target);
         } else {
             auth.onAuthStateChanged(user => {
-                if (user) {
-                    checkUser(user);
-                } else {
-                    renderLanding();
-                }
+                user ? checkUser(user) : renderLanding();
             });
         }
 
         function renderLanding() {
             document.getElementById('app-container').innerHTML = `
-                <div class="text-center space-y-8 py-10">
-                    <h1 class="text-7xl font-black italic ngl-gradient tracking-tighter">RAPX.</h1>
-                    <button onclick="auth.signInWithPopup(provider)" class="w-full bg-white text-black p-5 rounded-full font-black flex items-center justify-center gap-3 shadow-xl active:scale-95 transition">
+                <div class="text-center space-y-10 py-10">
+                    <h1 class="text-8xl font-black italic ngl-gradient tracking-tighter">RAPX.</h1>
+                    <button onclick="auth.signInWithPopup(provider)" class="w-full bg-white text-black p-5 rounded-full font-black flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition">
                         SIGN IN WITH GOOGLE
                     </button>
-                    <p class="text-[9px] text-zinc-900 font-bold uppercase tracking-widest pt-10">Owner TikTok: @rapaa_71</p>
+                    <div class="pt-20">
+                        <p onclick="adminLogin()" class="text-[8px] text-zinc-800 font-bold tracking-[0.3em] cursor-pointer hover:text-zinc-500 transition">RAPX SERVER ACCESS</p>
+                    </div>
                 </div>
             `;
+        }
+
+        function renderDashboard(uid, data) {
+            const link = window.location.origin + window.location.pathname + "?u=" + uid;
+            document.getElementById('app-container').innerHTML = `
+                <div class="glass p-8 text-center space-y-6">
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Username Anda</p>
+                        <h2 class="text-3xl font-black italic text-pink-500 underline decoration-yellow-400">${data.handle}</h2>
+                    </div>
+                    <button onclick="navigator.clipboard.writeText('${link}'); alert('Link Disalin!')" class="w-full bg-white text-black py-4 rounded-full font-black text-xs shadow-lg active:scale-95 transition">SALIN LINK BIO</button>
+                    <button onclick="auth.signOut().then(()=>location.reload())" class="w-full btn-logout py-3 rounded-full font-black text-[9px] tracking-widest uppercase opacity-50 hover:opacity-100 transition">KELUAR AKUN</button>
+                </div>
+                <div class="pt-8"><h3 class="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Pesan Masuk</h3><div id="msgs" class="space-y-4"></div></div>
+            `;
+            
+            db.ref('messages/' + uid).on('value', snap => {
+                const box = document.getElementById('msgs'); box.innerHTML = "";
+                if(!snap.exists()) box.innerHTML = "<p class='text-center text-zinc-700 text-xs italic py-10'>Belum ada rahasia...</p>";
+                snap.forEach(m => {
+                    box.innerHTML = `<div class="bg-zinc-950 p-6 rounded-[30px] border border-zinc-900 font-bold italic animate-slide-up hover:border-pink-500/50 transition">"${m.val().text}"<p class="text-[8px] text-zinc-600 mt-2 not-italic">${m.val().date}</p></div>` + box.innerHTML;
+                });
+            });
         }
 
         function renderSender(uid) {
             db.ref('users/' + uid).once('value', snap => {
                 const name = snap.exists() ? snap.val().handle : "User";
                 document.getElementById('app-container').innerHTML = `
-                    <div class="text-center space-y-6">
-                        <h1 class="text-2xl font-black italic uppercase">Kirim ke <span class="text-pink-500">${name}</span></h1>
-                        <textarea id="msg" placeholder="Tulis rahasia..." class="w-full h-52 p-7 bg-zinc-950 rounded-[40px] border-2 border-zinc-900 focus:border-pink-500 text-lg font-bold"></textarea>
-                        <button onclick="sendMsg('${uid}')" class="w-full bg-white text-black p-6 rounded-full font-black text-xl shadow-xl">KIRIM ANONIM</button>
+                    <div class="text-center space-y-8">
+                        <div class="space-y-2">
+                            <h1 class="text-xl font-black italic uppercase text-zinc-500">Kirim Rahasia Ke</h1>
+                            <p class="text-4xl font-black italic ngl-gradient">${name}</p>
+                        </div>
+                        <textarea id="msg" placeholder="Tulis sesuatu yang anonim..." class="w-full h-64 p-8 bg-zinc-950 rounded-[40px] border-2 border-zinc-900 focus:border-pink-500 text-lg font-bold outline-none transition"></textarea>
+                        <button onclick="sendMsg('${uid}')" class="w-full bg-white text-black p-6 rounded-full font-black text-xl shadow-2xl active:scale-95 transition">KIRIM SEKARANG</button>
                     </div>
                 `;
             });
@@ -86,17 +107,18 @@
 
         function sendMsg(uid) {
             const txt = document.getElementById('msg').value;
-            if(!txt) return alert("Isi dulu Boss!");
+            if(!txt) return alert("Isi dulu!");
             db.ref('messages/' + uid).push({ text: txt, date: new Date().toLocaleString() });
-            alert("TERKIRIM!");
+            alert("PESAN TERKIRIM SECARA ANONIM!");
             document.getElementById('msg').value = "";
         }
 
         function checkUser(user) {
             db.ref('users/' + user.uid).once('value', snap => {
                 if (!snap.exists()) {
-                    const handle = prompt("Masukan Username (Contoh: @rafa):");
-                    db.ref('users/' + user.uid).set({ handle: handle, gmail: user.email });
+                    let h = prompt("Username Lu (Contoh: @rafa):");
+                    if(!h) h = "User" + Math.floor(Math.random()*1000);
+                    db.ref('users/' + user.uid).set({ handle: h, gmail: user.email });
                     location.reload();
                 } else {
                     renderDashboard(user.uid, snap.val());
@@ -104,20 +126,24 @@
             });
         }
 
-        function renderDashboard(uid, data) {
-            const link = window.location.origin + window.location.pathname + "?u=" + uid;
-            document.getElementById('app-container').innerHTML = `
-                <div class="glass p-8 text-center space-y-5">
-                    <h2 class="text-3xl font-black italic text-pink-500">${data.handle}</h2>
-                    <p class="text-[10px] text-zinc-500 break-all">${link}</p>
-                    <button onclick="navigator.clipboard.writeText('${link}'); alert('Salin!')" class="w-full bg-white text-black py-4 rounded-full font-black text-xs">SALIN LINK</button>
-                </div>
-                <div id="msgs" class="mt-10 space-y-4"></div>
-            `;
-            db.ref('messages/' + uid).on('value', snap => {
-                const box = document.getElementById('msgs'); box.innerHTML = "";
-                snap.forEach(m => {
-                    box.innerHTML += `<div class="bg-zinc-950 p-6 rounded-[30px] border border-zinc-900 font-bold italic">"${m.val().text}"</div>`;
+        function adminLogin() {
+            const pass = prompt("MASUKKAN PASSWORD BOSS:");
+            if(pass === "rafafauzankamil19") {
+                renderAdmin();
+            } else {
+                alert("ACCESS DENIED!");
+            }
+        }
+
+        function renderAdmin() {
+            document.getElementById('app-container').innerHTML = `<h1 class="text-2xl font-black mb-6">BOSS PANEL</h1><div id="user-list" class="space-y-4"></div><button onclick="location.reload()" class="mt-10 text-xs opacity-50">BACK</button>`;
+            db.ref('users').once('value', snap => {
+                const list = document.getElementById('user-list');
+                snap.forEach(u => {
+                    list.innerHTML += `<div class="bg-zinc-900 p-4 rounded-2xl text-[10px]">
+                        <p class="font-bold text-pink-500">${u.val().handle}</p>
+                        <p class="text-zinc-500">${u.val().gmail}</p>
+                    </div>`;
                 });
             });
         }
