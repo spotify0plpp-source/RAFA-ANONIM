@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAPX ANONIM - V7.0</title>
+    <title>RAPX ANONIM - VIP SYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
+        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; }
         .ngl-gradient { background: linear-gradient(45deg, #FF0055, #FFCC00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 40px; }
-        .btn-logout { border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .vip-badge { background: linear-gradient(90deg, #FFD700, #FFA500); color: black; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-6">
 
     <div id="app-container" class="w-full max-w-sm space-y-8 mt-10">
-        <div class="text-center py-20">
-            <h1 class="text-6xl font-black italic ngl-gradient tracking-tighter animate-pulse">RAPX.</h1>
-        </div>
+        <div class="text-center py-20"><h1 class="text-6xl font-black italic ngl-gradient animate-pulse">RAPX.</h1></div>
     </div>
 
     <script>
@@ -40,66 +38,67 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // Routing Logic
         const urlParams = new URLSearchParams(window.location.search);
         const target = urlParams.get('u');
 
-        if (target) {
-            renderSender(target);
-        } else {
-            auth.onAuthStateChanged(user => {
-                user ? checkUser(user) : renderLanding();
-            });
-        }
+        if (target) { renderSender(target); } 
+        else { auth.onAuthStateChanged(user => { user ? checkUser(user) : renderLanding(); }); }
 
         function renderLanding() {
             document.getElementById('app-container').innerHTML = `
                 <div class="text-center space-y-10 py-10">
                     <h1 class="text-8xl font-black italic ngl-gradient tracking-tighter">RAPX.</h1>
-                    <button onclick="auth.signInWithPopup(provider)" class="w-full bg-white text-black p-5 rounded-full font-black flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition">
-                        SIGN IN WITH GOOGLE
-                    </button>
-                    <div class="pt-20">
-                        <p onclick="adminLogin()" class="text-[8px] text-zinc-800 font-bold tracking-[0.3em] cursor-pointer hover:text-zinc-500 transition">RAPX SERVER ACCESS</p>
-                    </div>
+                    <button onclick="auth.signInWithPopup(provider)" class="w-full bg-white text-black p-5 rounded-full font-black shadow-2xl active:scale-95 transition">SIGN IN WITH GOOGLE</button>
+                    <p onclick="adminLogin()" class="text-[8px] text-zinc-900 font-bold tracking-[0.3em] pt-20">SERVER ID: 85779155783</p>
                 </div>
             `;
         }
 
         function renderDashboard(uid, data) {
             const link = window.location.origin + window.location.pathname + "?u=" + uid;
+            const isVIP = data.isVIP === true;
             document.getElementById('app-container').innerHTML = `
-                <div class="glass p-8 text-center space-y-6">
-                    <div class="space-y-1">
-                        <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Username Anda</p>
-                        <h2 class="text-3xl font-black italic text-pink-500 underline decoration-yellow-400">${data.handle}</h2>
+                <div class="glass p-8 text-center space-y-5">
+                    <div class="flex justify-center items-center gap-2">
+                        <h2 class="text-3xl font-black italic text-pink-500">${data.handle}</h2>
+                        ${isVIP ? '<span class="vip-badge">VIP</span>' : ''}
                     </div>
-                    <button onclick="navigator.clipboard.writeText('${link}'); alert('Link Disalin!')" class="w-full bg-white text-black py-4 rounded-full font-black text-xs shadow-lg active:scale-95 transition">SALIN LINK BIO</button>
-                    <button onclick="auth.signOut().then(()=>location.reload())" class="w-full btn-logout py-3 rounded-full font-black text-[9px] tracking-widest uppercase opacity-50 hover:opacity-100 transition">KELUAR AKUN</button>
+                    <button onclick="navigator.clipboard.writeText('${link}'); alert('Link Disalin!')" class="w-full bg-white text-black py-4 rounded-full font-black text-xs shadow-lg">SALIN LINK BIO</button>
+                    ${!isVIP ? `<a href="https://wa.me/6285779155783?text=Halo Boss Rafa, mau beli VIP RAPX dong biar bisa liat pengirim" class="block w-full bg-yellow-400 text-black py-3 rounded-full font-black text-[10px] uppercase">BELI VIP (LIAT PENGIRIM)</a>` : ''}
+                    <button onclick="auth.signOut().then(()=>location.reload())" class="w-full text-zinc-600 py-2 font-black text-[8px] uppercase">LOGOUT</button>
                 </div>
-                <div class="pt-8"><h3 class="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4">Pesan Masuk</h3><div id="msgs" class="space-y-4"></div></div>
+                <div id="msgs" class="pt-10 space-y-4"></div>
             `;
             
             db.ref('messages/' + uid).on('value', snap => {
                 const box = document.getElementById('msgs'); box.innerHTML = "";
-                if(!snap.exists()) box.innerHTML = "<p class='text-center text-zinc-700 text-xs italic py-10'>Belum ada rahasia...</p>";
                 snap.forEach(m => {
-                    box.innerHTML = `<div class="bg-zinc-950 p-6 rounded-[30px] border border-zinc-900 font-bold italic animate-slide-up hover:border-pink-500/50 transition">"${m.val().text}"<p class="text-[8px] text-zinc-600 mt-2 not-italic">${m.val().date}</p></div>` + box.innerHTML;
+                    const msgData = m.val();
+                    box.innerHTML = `
+                    <div class="bg-zinc-950 p-6 rounded-[35px] border border-zinc-900">
+                        <p class="font-bold italic text-lg text-zinc-200">"${msgData.text}"</p>
+                        <div class="mt-4 pt-4 border-t border-zinc-900 flex justify-between items-center">
+                            <button onclick="revealSender('${isVIP}', '${msgData.sender || 'Anonim'}')" class="text-[9px] font-black text-pink-500 uppercase tracking-widest">Siapa Pengirimnya?</button>
+                            <span class="text-[8px] text-zinc-700">${msgData.date}</span>
+                        </div>
+                    </div>` + box.innerHTML;
                 });
             });
+        }
+
+        function revealSender(isVIP, sender) {
+            if(isVIP === "true") { alert("PENGIRIM: " + sender); } 
+            else { window.location.href = "https://wa.me/6285779155783?text=Boss, mau beli VIP biar bisa liat siapa yang ngirim pesan tadi!"; }
         }
 
         function renderSender(uid) {
             db.ref('users/' + uid).once('value', snap => {
                 const name = snap.exists() ? snap.val().handle : "User";
                 document.getElementById('app-container').innerHTML = `
-                    <div class="text-center space-y-8">
-                        <div class="space-y-2">
-                            <h1 class="text-xl font-black italic uppercase text-zinc-500">Kirim Rahasia Ke</h1>
-                            <p class="text-4xl font-black italic ngl-gradient">${name}</p>
-                        </div>
-                        <textarea id="msg" placeholder="Tulis sesuatu yang anonim..." class="w-full h-64 p-8 bg-zinc-950 rounded-[40px] border-2 border-zinc-900 focus:border-pink-500 text-lg font-bold outline-none transition"></textarea>
-                        <button onclick="sendMsg('${uid}')" class="w-full bg-white text-black p-6 rounded-full font-black text-xl shadow-2xl active:scale-95 transition">KIRIM SEKARANG</button>
+                    <div class="text-center space-y-6">
+                        <p class="text-4xl font-black italic ngl-gradient">${name}</p>
+                        <textarea id="msg" placeholder="Kirim pesan rahasia ke ${name}..." class="w-full h-64 p-8 bg-zinc-950 rounded-[40px] border-2 border-zinc-900 text-lg font-bold outline-none"></textarea>
+                        <button onclick="sendMsg('${uid}')" class="w-full bg-white text-black p-6 rounded-full font-black text-xl shadow-2xl">KIRIM ANONIM</button>
                     </div>
                 `;
             });
@@ -107,45 +106,47 @@
 
         function sendMsg(uid) {
             const txt = document.getElementById('msg').value;
+            const currentU = auth.currentUser ? auth.currentUser.email : "Anonim";
             if(!txt) return alert("Isi dulu!");
-            db.ref('messages/' + uid).push({ text: txt, date: new Date().toLocaleString() });
-            alert("PESAN TERKIRIM SECARA ANONIM!");
+            db.ref('messages/' + uid).push({ text: txt, sender: currentU, date: new Date().toLocaleString() });
+            alert("TERKIRIM!");
             document.getElementById('msg').value = "";
         }
 
         function checkUser(user) {
             db.ref('users/' + user.uid).once('value', snap => {
                 if (!snap.exists()) {
-                    let h = prompt("Username Lu (Contoh: @rafa):");
-                    if(!h) h = "User" + Math.floor(Math.random()*1000);
-                    db.ref('users/' + user.uid).set({ handle: h, gmail: user.email });
+                    let h = prompt("Username Lu:");
+                    db.ref('users/' + user.uid).set({ handle: h, gmail: user.email, isVIP: false });
                     location.reload();
-                } else {
-                    renderDashboard(user.uid, snap.val());
-                }
+                } else { renderDashboard(user.uid, snap.val()); }
             });
         }
 
         function adminLogin() {
-            const pass = prompt("MASUKKAN PASSWORD BOSS:");
-            if(pass === "rafafauzankamil19") {
-                renderAdmin();
-            } else {
-                alert("ACCESS DENIED!");
-            }
+            if(prompt("PASS:") === "rafafauzankamil19") renderAdmin();
         }
 
         function renderAdmin() {
-            document.getElementById('app-container').innerHTML = `<h1 class="text-2xl font-black mb-6">BOSS PANEL</h1><div id="user-list" class="space-y-4"></div><button onclick="location.reload()" class="mt-10 text-xs opacity-50">BACK</button>`;
+            document.getElementById('app-container').innerHTML = `<h1 class="text-2xl font-black mb-6">BOSS ADMIN</h1><div id="user-list" class="space-y-4"></div>`;
             db.ref('users').once('value', snap => {
                 const list = document.getElementById('user-list');
                 snap.forEach(u => {
-                    list.innerHTML += `<div class="bg-zinc-900 p-4 rounded-2xl text-[10px]">
-                        <p class="font-bold text-pink-500">${u.val().handle}</p>
-                        <p class="text-zinc-500">${u.val().gmail}</p>
+                    list.innerHTML += `<div class="bg-zinc-900 p-4 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-xs">${u.val().handle}</p>
+                            <p class="text-[8px] text-zinc-500">${u.key}</p>
+                        </div>
+                        <button onclick="toggleVIP('${u.key}', ${u.val().isVIP})" class="bg-pink-500 text-[8px] px-3 py-1 rounded-full font-bold">${u.val().isVIP ? 'HAPUS VIP' : 'JADIKAN VIP'}</button>
                     </div>`;
                 });
             });
+        }
+
+        function toggleVIP(uid, currentStatus) {
+            db.ref('users/' + uid).update({ isVIP: !currentStatus });
+            alert("STATUS VIP BERUBAH!");
+            renderAdmin();
         }
     </script>
 </body>
