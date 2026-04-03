@@ -3,34 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPX - DEV MODE</title>
+    <title>RAPX - ADMIN CONTROL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; margin: 0; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Outfit', sans-serif; background: #000; color: #fff; margin: 0; min-height: 100vh; }
         .main-bg {
             background: linear-gradient(rgba(165, 243, 252, 0.7), rgba(251, 207, 232, 0.7)), 
                         url('https://i.ibb.co.com/1GpkM7br/1741165509923.jpg');
-            background-size: cover; background-position: center; background-attachment: fixed;
-            min-height: 100vh;
+            background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh;
         }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        .btn-base { font-weight: 900; border-radius: 20px; padding: 18px; width: 100%; border: none; cursor: pointer; transition: 0.2s; text-transform: uppercase; tracking-widest; font-size: 13px; outline: none; }
-        .btn-main { background: #fff; color: #be185d; }
-        .btn-main:active { transform: scale(0.95); opacity: 0.8; }
-        .btn-vip { background: linear-gradient(45deg, #ec4899, #db2777); color: #fff; }
-        .input-rap { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 18px; width: 100%; border: none; color: #000; font-weight: 700; outline: none; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .anim-up { animation: fadeInUp 0.4s ease-out forwards; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border-radius: 35px; border: 1px solid rgba(255,255,255,0.5); }
+        .btn-base { font-weight: 900; border-radius: 20px; padding: 16px; width: 100%; border: none; cursor: pointer; transition: 0.2s; text-transform: uppercase; font-size: 12px; }
+        .btn-main { background: #fff; color: #be185d; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-admin { background: #000; color: #fff; margin-top: 10px; }
+        .input-rap { background: rgba(255, 255, 255, 0.95); border-radius: 18px; padding: 15px; width: 100%; border: none; color: #000; font-weight: 700; outline: none; margin-bottom: 10px; }
+        .badge { font-[9px] px-3 py-1 rounded-full font-black uppercase tracking-tighter; }
+        @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .anim { animation: slide 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="main-bg flex flex-col items-center p-6">
 
-    <div id="app" class="w-full max-w-sm pt-10">
-        </div>
+    <div id="app" class="w-full max-w-sm pt-8"></div>
 
     <script>
         const NO_WA = "6285779155783";
@@ -45,7 +43,6 @@
         const params = new URLSearchParams(window.location.search);
         const target = params.get('u');
 
-        // INITIAL CHECK
         window.onload = () => {
             if (target) return renderSender(target);
             checkAuth();
@@ -54,76 +51,102 @@
         function checkAuth() {
             const user = localStorage.getItem('rapx_session');
             if (!user) return renderLogin();
+            const data = JSON.parse(user);
             
-            try {
-                const data = JSON.parse(user);
-                // Bypass kalo dia DEV biar gak FC gara-gara Firebase delay
-                if (data.level === 'DEV') return renderDashboard(data);
-                
-                // Kalo user biasa, tetep sinkron ke DB
+            // Bypass DEV login
+            if (data.user === 'rapx' || data.level === 'DEV') {
+                renderDashboard(data);
+            } else {
                 db.ref('users/' + data.user).once('value').then(s => {
                     if (s.exists()) renderDashboard(s.val());
                     else logout();
                 }).catch(() => renderDashboard(data));
-            } catch (e) { logout(); }
+            }
         }
 
         function renderLogin() {
             document.getElementById('app').innerHTML = `
-                <div class="text-center space-y-10 anim-up">
-                    <h1 class="text-8xl font-black italic drop-shadow-2xl">RAPX.</h1>
-                    <div class="glass p-8 space-y-5">
+                <div class="text-center space-y-10 anim">
+                    <h1 class="text-8xl font-black italic">RAPX.</h1>
+                    <div class="glass p-8 space-y-4 shadow-2xl">
                         <input id="u" placeholder="Username" class="input-rap">
                         <input id="p" type="password" placeholder="Password" class="input-rap">
-                        <button onclick="login()" class="btn-base btn-main shadow-xl">MASUK</button>
+                        <button onclick="login()" class="btn-base btn-main">MASUK</button>
                     </div>
-                    <p onclick="renderReg()" class="text-sm font-bold underline cursor-pointer">DAFTAR AKUN BARU</p>
+                    <p onclick="renderReg()" class="text-sm font-bold underline">BUAT AKUN</p>
                 </div>`;
         }
 
         function login() {
             const u = document.getElementById('u').value.trim().toLowerCase();
             const p = document.getElementById('p').value;
-
-            // --- DEV LOGIN (ANTI FC) ---
             if (u === "rapx" && p === "rapx") {
-                const devData = { user: "Rafa Fauzan Kamil", level: "DEV", real_id: "rapx" };
-                localStorage.setItem('rapx_session', JSON.stringify(devData));
-                return location.href = window.location.pathname;
+                const dev = { user: "rapx", level: "DEV", name: "Rafa Fauzan Kamil" };
+                localStorage.setItem('rapx_session', JSON.stringify(dev));
+                return location.reload();
             }
-
-            // USER BIASA
             db.ref('users/' + u).once('value').then(s => {
                 const v = s.val();
                 if (v && v.pass === p) {
                     localStorage.setItem('rapx_session', JSON.stringify(v));
-                    location.href = window.location.pathname;
-                } else { alert("User/Pass Salah!"); }
+                    location.reload();
+                } else alert("Gagal!");
             });
         }
 
         function renderDashboard(data) {
-            const name = data.user || "User";
+            const name = data.user;
+            const level = data.level || "USER";
             const link = window.location.origin + window.location.pathname + "?u=" + name;
+            
+            let badgeClass = "bg-black text-white";
+            if(level === 'VIP') badgeClass = "bg-amber-500 text-white";
+            if(level === 'VVIP') badgeClass = "bg-purple-600 text-white";
+            if(level === 'MY PACAR') badgeClass = "bg-pink-500 text-white animate-pulse";
 
             document.getElementById('app').innerHTML = `
-                <div class="glass p-8 text-center space-y-7 anim-up shadow-2xl">
+                <div class="glass p-8 text-center space-y-6 anim shadow-2xl">
                     <div class="flex flex-col items-center">
-                        <div class="w-24 h-24 bg-gradient-to-br from-pink-500 to-pink-700 rounded-full flex items-center justify-center text-5xl font-black border-4 border-white">
+                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl font-black text-pink-600 border-4 border-pink-200">
                             ${name.charAt(0).toUpperCase()}
                         </div>
-                        <h2 class="text-3xl font-black text-slate-800 italic mt-5">${name}</h2>
-                        <span class="bg-black text-[10px] px-4 py-1 rounded-full font-bold uppercase tracking-widest">${data.level}</span>
+                        <h2 class="text-2xl font-black text-slate-800 italic mt-4">@${name}</h2>
+                        <span class="badge ${badgeClass} text-[10px] px-4 py-1 mt-1">${level}</span>
                     </div>
+
+                    ${name === 'rapx' ? `
+                        <div class="bg-black/5 p-4 rounded-2xl border border-black/10">
+                            <p class="text-[10px] font-black text-slate-500 mb-3 uppercase">Admin Control Panel</p>
+                            <input id="target_u" placeholder="Target Username" class="input-rap !mb-2 !p-3 !text-xs">
+                            <select id="target_lv" class="input-rap !mb-2 !p-3 !text-xs">
+                                <option value="USER">USER</option>
+                                <option value="VIP">VIP</option>
+                                <option value="VVIP">VVIP</option>
+                                <option value="MY PACAR">MY PACAR ❤️</option>
+                            </select>
+                            <button onclick="updateUser()" class="btn-base btn-admin !py-3">UPDATE STATUS</button>
+                        </div>
+                    ` : ''}
+
                     <div class="space-y-3">
                         <button onclick="copy('${link}')" class="btn-base btn-main text-xs">🔗 SALIN LINK BIO</button>
-                        ${data.level !== 'DEV' ? `<button onclick="buyVIP()" class="btn-base btn-vip text-xs">👑 BELI VIP</button>` : '<p class="text-pink-600 font-black text-xs">DEV ACCESS GRANTED</p>'}
+                        ${level === 'USER' ? `<button onclick="buyVIP()" class="btn-base bg-pink-600 text-white text-xs">👑 BELI VIP</button>` : ''}
                     </div>
-                    <p onclick="logout()" class="text-[11px] text-slate-500 font-bold underline cursor-pointer">LOGOUT</p>
+                    <p onclick="logout()" class="text-[10px] text-slate-400 font-bold underline">LOGOUT</p>
                 </div>
-                <div id="inbox" class="mt-10 space-y-5 pb-24"></div>`;
-            
+                <div id="inbox" class="mt-8 space-y-4 pb-24"></div>`;
             loadMsgs(name);
+        }
+
+        function updateUser() {
+            const tU = document.getElementById('target_u').value.trim().toLowerCase();
+            const tL = document.getElementById('target_lv').value;
+            if(!tU) return alert("Username target mana?");
+            
+            db.ref('users/' + tU).update({ level: tL }).then(() => {
+                alert("Sukses! " + tU + " sekarang " + tL);
+                document.getElementById('target_u').value = "";
+            }).catch(() => alert("User tidak ditemukan!"));
         }
 
         function loadMsgs(u) {
@@ -131,15 +154,15 @@
                 const box = document.getElementById('inbox');
                 if (!box) return;
                 box.innerHTML = "";
-                if (!s.exists()) return box.innerHTML = `<p class="text-center opacity-50 font-bold">Inbox Kosong.</p>`;
+                if (!s.exists()) return box.innerHTML = `<p class="text-center opacity-40 font-bold mt-10">Belum ada pesan.</p>`;
                 
-                let arr = [];
-                s.forEach(m => arr.push(m.val()));
-                arr.sort((a,b) => b.time - a.time).forEach(d => {
+                let m = [];
+                s.forEach(x => m.push(x.val()));
+                m.sort((a,b) => b.time - a.time).forEach(d => {
                     const el = document.createElement('div');
-                    el.className = "glass p-6 border-l-8 border-pink-500 anim-up";
-                    el.innerHTML = `<p class="text-slate-800 font-bold text-lg">"${d.text}"</p>
-                                    <small class="text-[8px] text-slate-400 font-black uppercase">${new Date(d.time).toLocaleString()}</small>`;
+                    el.className = "glass p-5 border-l-8 border-pink-500 anim";
+                    el.innerHTML = `<p class="text-slate-800 font-bold">"${d.text}"</p>
+                                    <small class="text-[8px] text-slate-400 font-black">${new Date(d.time).toLocaleString()}</small>`;
                     box.appendChild(el);
                 });
             });
@@ -147,18 +170,17 @@
 
         function renderSender(uid) {
             document.getElementById('app').innerHTML = `
-                <div class="text-center space-y-7 anim-up">
-                    <div class="glass p-4 inline-block px-10 border-2 border-white">
-                        <h1 class="text-3xl font-black italic text-slate-800 uppercase">@${uid}</h1>
-                    </div>
-                    <textarea id="msg" placeholder="Kirim pesan anonim..." class="w-full h-64 glass p-8 text-slate-800 font-bold text-lg outline-none border-none"></textarea>
-                    <button onclick="send('${uid}')" class="btn-base btn-main shadow-lg">KIRIM PESAN</button>
+                <div class="text-center space-y-6 anim">
+                    <h1 class="text-4xl font-black italic text-white uppercase">@${uid}</h1>
+                    <textarea id="msg" placeholder="Kirim pesan anonim..." class="w-full h-64 glass p-8 text-slate-800 font-bold text-lg outline-none border-none shadow-2xl"></textarea>
+                    <button onclick="send('${uid}')" class="btn-base btn-main shadow-xl">KIRIM PESAN</button>
+                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-widest">100% Secret & Secure</p>
                 </div>`;
         }
 
         function send(uid) {
             const t = document.getElementById('msg').value.trim();
-            if (!t) return alert("Isi pesannya!");
+            if (!t) return alert("Kosong!");
             db.ref('messages/' + uid).push({ text: t, time: Date.now() }).then(() => {
                 alert("Terkirim!");
                 document.getElementById('msg').value = "";
@@ -167,39 +189,30 @@
 
         function renderReg() {
             document.getElementById('app').innerHTML = `
-                <div class="text-center space-y-10 anim-up">
-                    <h1 class="text-6xl font-black italic">JOIN.</h1>
-                    <div class="glass p-8 space-y-5">
+                <div class="text-center space-y-10 anim">
+                    <h1 class="text-6xl font-black italic">DAFTAR.</h1>
+                    <div class="glass p-8 space-y-4">
                         <input id="ru" placeholder="Username" class="input-rap">
                         <input id="rp" type="password" placeholder="Password" class="input-rap">
-                        <button onclick="reg()" class="btn-base btn-main">DAFTAR</button>
+                        <button onclick="reg()" class="btn-base btn-main">BUAT AKUN</button>
                     </div>
-                    <p onclick="location.reload()" class="text-sm font-bold underline cursor-pointer">KEMBALI</p>
+                    <p onclick="location.reload()" class="text-sm font-bold underline">KEMBALI</p>
                 </div>`;
         }
 
         function reg() {
             const u = document.getElementById('ru').value.toLowerCase().trim();
             const p = document.getElementById('rp').value;
-            if (u.length < 3) return alert("Username min 3 huruf!");
+            if (u.length < 3) return alert("Min 3 huruf!");
             db.ref('users/' + u).set({ user: u, pass: p, level: 'USER' }).then(() => {
                 alert("Sukses!");
                 location.reload();
             });
         }
 
-        function buyVIP() {
-            window.open(`https://wa.me/${NO_WA}?text=Halo Dev, mau beli VIP!`, '_blank');
-        }
-
-        function copy(t) {
-            navigator.clipboard.writeText(t).then(() => alert("Link Disalin!"));
-        }
-
-        function logout() {
-            localStorage.clear();
-            location.href = window.location.pathname;
-        }
+        function buyVIP() { window.open(`https://wa.me/${NO_WA}?text=Halo Dev, mau beli VIP!`, '_blank'); }
+        function copy(t) { navigator.clipboard.writeText(t).then(() => alert("Disalin!")); }
+        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
