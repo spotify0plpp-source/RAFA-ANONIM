@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RAPX - STABLE 🤍</title>
+    <title>RAPX - PRIVAT MODE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -21,7 +21,7 @@
         .btn-main { background: #fff; color: #be185d; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-admin { background: #000; color: #fff; margin-top: 10px; }
         .input-rap { background: rgba(255, 255, 255, 0.95); border-radius: 18px; padding: 15px; width: 100%; border: none; color: #000; font-weight: 700; outline: none; margin-bottom: 10px; }
-        .badge { font-size: 9px; px-3 py-1 rounded-full font-black uppercase tracking-tighter; }
+        .badge { font-size: 10px; padding: 4px 12px; rounded-full font-black uppercase tracking-widest; }
         @keyframes slide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .anim { animation: slide 0.4s ease-out forwards; }
     </style>
@@ -68,11 +68,11 @@
                 <div class="text-center space-y-10 anim">
                     <h1 class="text-8xl font-black italic">RAPX.</h1>
                     <div class="glass p-8 space-y-4 shadow-2xl">
-                        <input id="u" placeholder="Username 🤍" class="input-rap">
-                        <input id="p" type="password" placeholder="Password 🤍" class="input-rap">
-                        <button onclick="login()" class="btn-base btn-main">MASUK 🤍</button>
+                        <input id="u" placeholder="Username" class="input-rap">
+                        <input id="p" type="password" placeholder="Password" class="input-rap">
+                        <button onclick="login()" class="btn-base btn-main">MASUK</button>
                     </div>
-                    <p onclick="renderReg()" class="text-sm font-bold underline cursor-pointer">BUAT AKUN 🤍</p>
+                    <p onclick="renderReg()" class="text-sm font-bold underline cursor-pointer">BUAT AKUN BARU</p>
                 </div>`;
         }
 
@@ -89,7 +89,7 @@
                 if (v && v.pass === p) {
                     localStorage.setItem('rapx_session', JSON.stringify(v));
                     location.reload();
-                } else alert("Gagal Login 🤍");
+                } else alert("Login Gagal!");
             });
         }
 
@@ -99,32 +99,39 @@
             const link = window.location.origin + window.location.pathname + "?u=" + name;
             
             let badgeClass = "bg-black text-white";
-            let badgeIcon = "🤍";
-            if(level === 'VIP') badgeClass = "bg-amber-500 text-white";
-            if(level === 'VVIP') badgeClass = "bg-purple-600 text-white";
-            if(level === 'MY PACAR') badgeClass = "bg-pink-500 text-white animate-pulse";
+            let nameTag = name;
+
+            // LOGIC KHUSUS EMOJI PUTIH CUMA BUAT MY PACAR
+            if(level === 'MY PACAR') {
+                badgeClass = "bg-pink-500 text-white animate-pulse";
+                nameTag = name + " 🤍"; // Emoji cuma di sini
+            } else if(level === 'VIP') {
+                badgeClass = "bg-amber-500 text-white";
+            } else if(level === 'VVIP') {
+                badgeClass = "bg-purple-600 text-white";
+            }
 
             document.getElementById('app').innerHTML = `
                 <div class="glass p-8 text-center space-y-6 anim shadow-2xl">
                     <div class="flex flex-col items-center">
-                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl font-black text-pink-600 border-4 border-pink-200">
+                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl font-black text-pink-600 border-4 border-pink-100 shadow-sm">
                             ${name.charAt(0).toUpperCase()}
                         </div>
-                        <h2 class="text-2xl font-black text-slate-800 italic mt-4">@${name} 🤍</h2>
-                        <span class="badge ${badgeClass} text-[10px] px-4 py-1 mt-1">${badgeIcon} ${level}</span>
+                        <h2 class="text-2xl font-black text-slate-800 italic mt-4">@${nameTag}</h2>
+                        <span class="badge ${badgeClass} mt-1">${level === 'MY PACAR' ? '🤍 ' + level : level}</span>
                     </div>
 
                     ${name === 'rapx' ? `
                         <div class="bg-black/5 p-4 rounded-2xl border border-black/10">
-                            <p class="text-[10px] font-black text-slate-500 mb-3 uppercase">Admin Control 🤍</p>
-                            <input id="target_u" placeholder="Target Username 🤍" class="input-rap !mb-2 !p-3 !text-xs">
+                            <p class="text-[10px] font-black text-slate-500 mb-3 uppercase">Admin Control Panel</p>
+                            <input id="target_u" placeholder="Target Username" class="input-rap !mb-2 !p-3 !text-xs">
                             <select id="target_lv" class="input-rap !mb-2 !p-3 !text-xs">
-                                <option value="USER">USER 🤍</option>
-                                <option value="VIP">VIP 🤍</option>
-                                <option value="VVIP">VVIP 🤍</option>
+                                <option value="USER">USER</option>
+                                <option value="VIP">VIP</option>
+                                <option value="VVIP">VVIP</option>
                                 <option value="MY PACAR">MY PACAR 🤍</option>
                             </select>
-                            <button onclick="updateUser()" class="btn-base btn-admin !py-3">UPDATE STATUS 🤍</button>
+                            <button onclick="updateUser()" class="btn-base btn-admin !py-3">UPDATE STATUS</button>
                         </div>
                     ` : ''}
 
@@ -132,7 +139,7 @@
                         <button onclick="copy('${link}')" class="btn-base btn-main text-xs">🔗 SALIN LINK BIO</button>
                         ${level === 'USER' ? `<button onclick="buyVIP()" class="btn-base bg-pink-600 text-white text-xs">👑 BELI VIP</button>` : ''}
                     </div>
-                    <p onclick="logout()" class="text-[10px] text-slate-400 font-bold underline cursor-pointer">LOGOUT 🤍</p>
+                    <p onclick="logout()" class="text-[10px] text-slate-400 font-bold underline cursor-pointer">LOGOUT</p>
                 </div>
                 <div id="inbox" class="mt-8 space-y-4 pb-24"></div>`;
             loadMsgs(name);
@@ -141,12 +148,12 @@
         function updateUser() {
             const tU = document.getElementById('target_u').value.trim().toLowerCase();
             const tL = document.getElementById('target_lv').value;
-            if(!tU) return alert("Username target mana? 🤍");
+            if(!tU) return alert("Siapa usernamenya?");
             
             db.ref('users/' + tU).update({ level: tL }).then(() => {
-                alert("Sukses Diubah 🤍");
+                alert("Status " + tU + " berhasil jadi " + tL);
                 document.getElementById('target_u').value = "";
-            }).catch(() => alert("Gagal 🤍"));
+            }).catch(() => alert("Gagal!"));
         }
 
         function loadMsgs(u) {
@@ -154,7 +161,7 @@
                 const box = document.getElementById('inbox');
                 if (!box) return;
                 box.innerHTML = "";
-                if (!s.exists()) return box.innerHTML = `<p class="text-center opacity-40 font-bold mt-10">Belum ada pesan 🤍</p>`;
+                if (!s.exists()) return box.innerHTML = `<p class="text-center opacity-40 font-bold mt-10">Belum ada pesan.</p>`;
                 
                 let m = [];
                 s.forEach(x => m.push(x.val()));
@@ -171,18 +178,17 @@
         function renderSender(uid) {
             document.getElementById('app').innerHTML = `
                 <div class="text-center space-y-6 anim">
-                    <h1 class="text-4xl font-black italic text-white uppercase">@${uid} 🤍</h1>
-                    <textarea id="msg" placeholder="Kirim pesan anonim 🤍" class="w-full h-64 glass p-8 text-slate-800 font-bold text-lg outline-none border-none shadow-2xl"></textarea>
-                    <button onclick="send('${uid}')" class="btn-base btn-main shadow-xl">KIRIM PESAN 🤍</button>
-                    <p class="text-[10px] font-bold opacity-70 uppercase tracking-widest">Secret System Active 🤍</p>
+                    <h1 class="text-4xl font-black italic text-white uppercase">@${uid}</h1>
+                    <textarea id="msg" placeholder="Kirim pesan rahasia..." class="w-full h-64 glass p-8 text-slate-800 font-bold text-lg outline-none border-none shadow-2xl"></textarea>
+                    <button onclick="send('${uid}')" class="btn-base btn-main shadow-xl">KIRIM PESAN</button>
                 </div>`;
         }
 
         function send(uid) {
             const t = document.getElementById('msg').value.trim();
-            if (!t) return alert("Isi pesannya 🤍");
+            if (!t) return alert("Pesan kosong!");
             db.ref('messages/' + uid).push({ text: t, time: Date.now() }).then(() => {
-                alert("Terkirim 🤍");
+                alert("Terkirim!");
                 document.getElementById('msg').value = "";
             });
         }
@@ -190,28 +196,28 @@
         function renderReg() {
             document.getElementById('app').innerHTML = `
                 <div class="text-center space-y-10 anim">
-                    <h1 class="text-6xl font-black italic">DAFTAR 🤍</h1>
-                    <div class="glass p-8 space-y-4">
-                        <input id="ru" placeholder="Username 🤍" class="input-rap">
-                        <input id="rp" type="password" placeholder="Password 🤍" class="input-rap">
-                        <button onclick="reg()" class="btn-base btn-main">BUAT AKUN 🤍</button>
+                    <h1 class="text-6xl font-black italic">DAFTAR.</h1>
+                    <div class="glass p-8 space-y-4 shadow-2xl">
+                        <input id="ru" placeholder="Username" class="input-rap">
+                        <input id="rp" type="password" placeholder="Password" class="input-rap">
+                        <button onclick="reg()" class="btn-base btn-main">BUAT AKUN</button>
                     </div>
-                    <p onclick="location.reload()" class="text-sm font-bold underline cursor-pointer">KEMBALI 🤍</p>
+                    <p onclick="location.reload()" class="text-sm font-bold underline cursor-pointer">KEMBALI</p>
                 </div>`;
         }
 
         function reg() {
             const u = document.getElementById('ru').value.toLowerCase().trim();
             const p = document.getElementById('rp').value;
-            if (u.length < 3) return alert("Min 3 huruf 🤍");
+            if (u.length < 3) return alert("Min 3 huruf!");
             db.ref('users/' + u).set({ user: u, pass: p, level: 'USER' }).then(() => {
-                alert("Sukses Daftar 🤍");
+                alert("Berhasil Daftar!");
                 location.reload();
             });
         }
 
         function buyVIP() { window.open(`https://wa.me/${NO_WA}?text=Halo Dev, mau beli VIP!`, '_blank'); }
-        function copy(t) { navigator.clipboard.writeText(t).then(() => alert("Disalin 🤍")); }
+        function copy(t) { navigator.clipboard.writeText(t).then(() => alert("Disalin!")); }
         function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
